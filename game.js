@@ -629,7 +629,13 @@ class Game {
         document.getElementById('start-button').addEventListener('click', () => {
             const nameInput = document.getElementById('player-name');
             if (!nameInput.value.trim()) {
-                alert('Please enter your name!');
+                const popup = document.getElementById('name-popup');
+                popup.classList.remove('hidden');
+                
+                document.getElementById('popup-ok').onclick = () => {
+                    popup.classList.add('hidden');
+                    nameInput.focus();
+                };
                 return;
             }
             document.getElementById('start-screen').classList.add('hidden');
