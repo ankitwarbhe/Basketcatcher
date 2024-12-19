@@ -469,6 +469,7 @@ class Game {
         this.gameSpeed = 1;
         this.isPaused = false;
         this.isGameOver = false;
+        this.playerName = document.getElementById('player-name').value || 'Anonymous';
         
         this.lastSpawn = 0;
         this.spawnInterval = 2000;
@@ -626,6 +627,11 @@ class Game {
 
         // Button controls
         document.getElementById('start-button').addEventListener('click', () => {
+            const nameInput = document.getElementById('player-name');
+            if (!nameInput.value.trim()) {
+                alert('Please enter your name!');
+                return;
+            }
             document.getElementById('start-screen').classList.add('hidden');
             document.getElementById('game-screen').classList.remove('hidden');
             this.start();
@@ -669,8 +675,9 @@ class Game {
     }
 
     saveScore(score) {
-        // Add new score with level
+        // Add new score with level and player name
         const newScore = {
+            name: this.playerName,
             score: score,
             level: this.level
         };
@@ -700,6 +707,7 @@ class Game {
             scoreItem.innerHTML = `
                 <div class="score-info">
                     <span class="rank">#${index + 1}</span>
+                    <span class="name">${scoreData.name || 'Anonymous'}</span>
                     <span class="level">Lvl ${scoreData.level || 1}</span>
                 </div>
                 <span class="score">${scoreData.score}</span>

@@ -169,6 +169,16 @@ p {
     min-width: 25px;
 }
 
+.score-item .name {
+    color: #2c3e50;
+    font-weight: 500;
+    margin-right: 8px;
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .score-item .level {
     color: #f39c12;
     font-size: 0.9rem;
@@ -245,4 +255,20 @@ p {
 
 #scoreboard::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
+}
+
+#player-name {
+    padding: 0.8rem;
+    font-size: 1.1rem;
+    border: 2px solid #4CAF50;
+    border-radius: 10px;
+    width: 200px;
+    text-align: center;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+#player-name:focus {
+    border-color: #45a049;
+    box-shadow: 0 0 8px rgba(76, 175, 80, 0.4);
 }
