@@ -677,6 +677,19 @@ class Game {
     loadScores() {
         // Load scores from localStorage
         this.scores = JSON.parse(localStorage.getItem('basketCatcherScores')) || [];
+        
+        // Initialize with some default scores if empty
+        if (this.scores.length === 0) {
+            this.scores = [
+                { name: 'Player 1', score: 100, level: 3 },
+                { name: 'Player 2', score: 80, level: 2 },
+                { name: 'Player 3', score: 60, level: 2 },
+                { name: 'Player 4', score: 40, level: 1 },
+                { name: 'Player 5', score: 20, level: 1 }
+            ];
+            localStorage.setItem('basketCatcherScores', JSON.stringify(this.scores));
+        }
+        
         this.updateScoreboardDisplay();
     }
 
@@ -706,20 +719,44 @@ class Game {
         const scoresList = document.getElementById('scores-list');
         scoresList.innerHTML = '';  // Clear current scores
         
+        // Add header
+        const header = document.createElement('div');
+        header.className = 'scores-header';
+        header.innerHTML = `
+            <div>Rank</div>
+            <div>Player</div>
+            <div>Level</div>
+            <div>Score</div>
+        `;
+        scoresList.appendChild(header);
+        
+        // Add scores
         this.scores.forEach((scoreData, index) => {
-            const scoreItem = document.createElement('div');
-            scoreItem.className = 'score-item' + (index === 0 ? ' latest' : '');
+            const scoreEntry = document.createElement('div');
+            scoreEntry.className = 'score-entry';
             
-            scoreItem.innerHTML = `
-                <div class="score-info">
-                    <span class="rank">#${index + 1}</span>
-                    <span class="name">${scoreData.name || 'Anonymous'}</span>
-                    <span class="level">Lvl ${scoreData.level || 1}</span>
-                </div>
-                <span class="score">${scoreData.score}</span>
-            `;
+            const rank = document.createElement('div');
+            rank.className = 'rank';
+            rank.textContent = `#${index + 1}`;
             
-            scoresList.appendChild(scoreItem);
+            const playerName = document.createElement('div');
+            playerName.className = 'player-name';
+            playerName.textContent = scoreData.name || 'Anonymous';
+            
+            const level = document.createElement('div');
+            level.className = 'level';
+            level.textContent = `Lvl ${scoreData.level || 1}`;
+            
+            const score = document.createElement('div');
+            score.className = 'score';
+            score.textContent = scoreData.score;
+            
+            scoreEntry.appendChild(rank);
+            scoreEntry.appendChild(playerName);
+            scoreEntry.appendChild(level);
+            scoreEntry.appendChild(score);
+            
+            scoresList.appendChild(scoreEntry);
         });
     }
 
@@ -742,3 +779,49 @@ window.onload = () => {
     const game = new Game();
     // Don't auto-start, wait for button click
 };
+
+function updateScoreboard(scores) {
+    const scoresList = document.getElementById('scores-list');
+    scoresList.innerHTML = '';
+    
+    // Add header
+    const header = document.createElement('div');
+    header.className = 'scores-header';
+    header.innerHTML = `
+        <div>Rank</div>
+        <div>Player</div>
+        <div>Level</div>
+        <div>Score</div>
+    `;
+    scoresList.appendChild(header);
+    
+    // Add scores
+    scores.sort((a, b) => b.score - a.score)
+        .slice(0, 10)
+        .forEach((score, index) => {
+            const scoreEntry = document.createElement('div');
+            scoreEntry.className = 'score-entry';
+            
+            const rank = document.createElement('div');
+            rank.className = 'rank';
+            rank.textContent = `#${index + 1}`;
+            
+            const playerName = document.createElement('div');
+            playerName.className = 'player-name';
+            playerName.textContent = score.name;
+            
+            const level = document.createElement('div');
+            level.className = 'level';
+            level.textContent = `Lvl ${score.level || 1}`;
+            
+            const scoreValue = document.createElement('div');
+            scoreValue.className = 'score';
+            scoreValue.textContent = score.score;
+            
+            scoreEntry.appendChild(rank);
+            scoreEntry.appendChild(playerName);
+            scoreEntry.appendChild(level);
+            scoreEntry.appendChild(scoreValue);
+            scoresList.appendChild(scoreEntry);
+        });
+}
