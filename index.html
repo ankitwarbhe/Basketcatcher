@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catch the Falling Objects</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="game-background"></div>
+    <div id="scoreboard">
+        <h2>High Scores</h2>
+        <div id="scores-list">
+            <!-- Scores will be added here dynamically -->
+        </div>
+    </div>
+    
+    <div id="game-container">
+        <div id="start-screen" class="screen">
+            <h1>Catch the Objects!</h1>
+            <p>Use arrow keys to move and catch the good objects</p>
+            <button id="start-button">Start Game</button>
+        </div>
+        
+        <div id="game-screen" class="screen hidden">
+            <canvas id="gameCanvas"></canvas>
+            <button id="pause-button">Pause</button>
+        </div>
+        
+        <div id="game-over-screen" class="screen hidden">
+            <h1>Game Over!</h1>
+            <p id="game-over-message">Game Over!</p>
+            <p>Final Score: <span id="final-score">0</span></p>
+            <button id="restart-button">Play Again</button>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>
