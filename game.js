@@ -765,7 +765,10 @@ class Game {
         const levelUpDiv = document.createElement('div');
         levelUpDiv.className = 'level-up-message';
         levelUpDiv.textContent = `Level ${this.level}!`;
-        document.getElementById('game-screen').appendChild(levelUpDiv);
+        
+        // Add to the game canvas container
+        const gameCanvas = document.getElementById('gameCanvas');
+        gameCanvas.parentElement.appendChild(levelUpDiv);
 
         // Remove the message after animation
         setTimeout(() => {

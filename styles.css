@@ -327,3 +327,42 @@ p {
 .popup-button:hover {
     background: #007399;
 }
+
+.level-up-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: #4CAF50;
+    font-size: 48px;
+    font-weight: bold;
+    padding: 20px 40px;
+    border-radius: 15px;
+    text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+    animation: levelUp 2s ease-out forwards;
+    z-index: 100;
+    border: 2px solid #4CAF50;
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+}
+
+@keyframes levelUp {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5);
+    }
+    20% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.2);
+    }
+    40% {
+        transform: translate(-50%, -50%) scale(1);
+    }
+    80% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1.5);
+    }
+}
