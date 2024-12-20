@@ -48,6 +48,64 @@ class FallingObject {
     }
 }
 
+class PartyPopper {
+    constructor(canvas, x, y) {
+        this.canvas = canvas;
+        this.x = x;
+        this.y = y;
+        this.particles = [];
+        this.gravity = 0.5;
+        this.fade = 0.02;
+        this.colors = ['#FFD700', '#FF6B6B', '#4CAF50', '#1E90FF', '#FF69B4'];
+        
+        // Create initial particles
+        this.createParticles();
+    }
+
+    createParticles() {
+        for (let i = 0; i < 50; i++) {
+            const angle = (Math.random() * Math.PI * 2);
+            const speed = 2 + Math.random() * 6;
+            this.particles.push({
+                x: this.x,
+                y: this.y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                size: 3 + Math.random() * 4,
+                color: this.colors[Math.floor(Math.random() * this.colors.length)],
+                opacity: 1
+            });
+        }
+    }
+
+    update() {
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+            const particle = this.particles[i];
+            particle.x += particle.vx;
+            particle.y += particle.vy;
+            particle.vy += this.gravity;
+            particle.opacity -= this.fade;
+
+            if (particle.opacity <= 0) {
+                this.particles.splice(i, 1);
+            }
+        }
+        return this.particles.length > 0;
+    }
+
+    draw(ctx) {
+        this.particles.forEach(particle => {
+            ctx.save();
+            ctx.globalAlpha = particle.opacity;
+            ctx.fillStyle = particle.color;
+            ctx.beginPath();
+            ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        });
+    }
+}
+
 class Game {
     constructor() {
         this.canvas = document.getElementById('gameCanvas');
@@ -59,6 +117,7 @@ class Game {
         this.initializeBackground();  // Initialize background first
         this.loadAssets();
         this.loadScores();
+        this.partyPoppers = [];  // Add this line
         this.setupGame();
         this.setupEventListeners();
     }
@@ -425,67 +484,330 @@ class Game {
         this.images = {
             background: (() => {
                 const canvas = document.createElement('canvas');
-                canvas.width = this.canvas.width;  // Match game canvas size
+                canvas.width = this.canvas.width;
                 canvas.height = this.canvas.height;
                 const ctx = canvas.getContext('2d');
                 
-                // Create a pattern background
+                // Create a more dramatic sky gradient
                 const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-                gradient.addColorStop(0, '#87CEEB');  // Sky blue at top
-                gradient.addColorStop(1, '#E0F7FA');  // Lighter blue at bottom
+                gradient.addColorStop(0, '#1a7bb5');   // Deeper blue at top
+                gradient.addColorStop(0.4, '#63b4cf'); // Mid-sky lighter blue
+                gradient.addColorStop(0.7, '#a7d9e8'); // Lower sky very light blue
+                gradient.addColorStop(1, '#def3f8');   // Horizon almost white
                 ctx.fillStyle = gradient;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                // Add decorative elements
-                // Clouds
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-                for (let i = 0; i < 5; i++) {
-                    const x = Math.random() * canvas.width;
-                    const y = Math.random() * (canvas.height / 2);
-                    const size = 30 + Math.random() * 50;
-                    
+                // Add subtle clouds
+                const drawCloud = (x, y, size) => {
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
                     ctx.beginPath();
                     ctx.arc(x, y, size, 0, Math.PI * 2);
                     ctx.arc(x + size * 0.5, y - size * 0.2, size * 0.7, 0, Math.PI * 2);
-                    ctx.arc(x - size * 0.5, y - size * 0.1, size * 0.6, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-
-                // Add some trees in the background
-                const drawTree = (x, y, size) => {
-                    // Tree trunk
-                    ctx.fillStyle = '#8B4513';
-                    ctx.fillRect(x - size/8, y - size/2, size/4, size);
-                    
-                    // Tree leaves
-                    ctx.fillStyle = '#228B22';
-                    ctx.beginPath();
-                    ctx.moveTo(x, y - size * 1.5);
-                    ctx.lineTo(x + size, y - size/2);
-                    ctx.lineTo(x - size, y - size/2);
-                    ctx.fill();
-                    
-                    ctx.beginPath();
-                    ctx.moveTo(x, y - size * 1.2);
-                    ctx.lineTo(x + size * 0.8, y - size/4);
-                    ctx.lineTo(x - size * 0.8, y - size/4);
+                    ctx.arc(x - size * 0.5, y, size * 0.6, 0, Math.PI * 2);
                     ctx.fill();
                 };
 
-                // Draw multiple trees
+                // Add a few subtle clouds
                 for (let i = 0; i < 4; i++) {
-                    const x = (i + 1) * (canvas.width / 5);
-                    drawTree(x, canvas.height - 50, 80);
+                    drawCloud(
+                        Math.random() * canvas.width,
+                        50 + Math.random() * 100,
+                        20 + Math.random() * 30
+                    );
                 }
 
-                // Add grass at the bottom
-                ctx.fillStyle = '#90EE90';
-                ctx.beginPath();
-                ctx.moveTo(0, canvas.height);
-                ctx.lineTo(canvas.width, canvas.height);
-                ctx.lineTo(canvas.width, canvas.height - 30);
-                ctx.quadraticCurveTo(canvas.width/2, canvas.height - 50, 0, canvas.height - 30);
-                ctx.fill();
+                // Draw grass base with gradient
+                const grassGradient = ctx.createLinearGradient(0, canvas.height - 100, 0, canvas.height);
+                grassGradient.addColorStop(0, '#2d5a27');  // Darker grass at top
+                grassGradient.addColorStop(1, '#3d7a34');  // Lighter grass at bottom
+                ctx.fillStyle = grassGradient;
+                ctx.fillRect(0, canvas.height - 100, canvas.width, 100);
+
+                // Draw detailed grass pattern
+                for (let i = 0; i < canvas.width; i += 3) {
+                    const grassHeight = 10 + Math.random() * 15;
+                    ctx.strokeStyle = `rgb(${45 + Math.random() * 20}, ${90 + Math.random() * 30}, ${39 + Math.random() * 20})`;
+                    ctx.beginPath();
+                    ctx.moveTo(i, canvas.height - 95);
+                    ctx.lineTo(i, canvas.height - 95 - grassHeight);
+                    ctx.stroke();
+                }
+
+                // Enhanced Christmas tree drawing function
+                const drawTree = (x, y, size) => {
+                    // Tree trunk with gradient
+                    const trunkGradient = ctx.createLinearGradient(x - size/8, y, x + size/8, y);
+                    trunkGradient.addColorStop(0, '#5D4037');  // Dark brown
+                    trunkGradient.addColorStop(0.5, '#795548'); // Medium brown
+                    trunkGradient.addColorStop(1, '#5D4037');  // Dark brown
+                    ctx.fillStyle = trunkGradient;
+                    
+                    // Draw trunk
+                    ctx.fillRect(x - size/8, y - size/4, size/4, size/3);
+
+                    // Draw Christmas tree triangular layers
+                    const treeColors = ['#0f5132', '#146B3A', '#165B33'];  // Different shades of Christmas green
+                    const layers = 3;
+                    const layerHeight = size/layers;
+
+                    for(let i = 0; i < layers; i++) {
+                        ctx.fillStyle = treeColors[i % treeColors.length];
+                        ctx.beginPath();
+                        ctx.moveTo(x - size * (0.8 - i * 0.2), y - size/4 - i * layerHeight);
+                        ctx.lineTo(x, y - size - i * layerHeight/2);
+                        ctx.lineTo(x + size * (0.8 - i * 0.2), y - size/4 - i * layerHeight);
+                        ctx.closePath();
+                        ctx.fill();
+                    }
+
+                    // Add Christmas decorations
+                    const ornamentColors = ['#ff0000', '#ffd700', '#ff69b4', '#4169e1', '#ffffff'];
+                    const addOrnament = (ornX, ornY, radius) => {
+                        // Ornament base
+                        ctx.fillStyle = ornamentColors[Math.floor(Math.random() * ornamentColors.length)];
+                        ctx.beginPath();
+                        ctx.arc(ornX, ornY, radius, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // Ornament shine
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+                        ctx.beginPath();
+                        ctx.arc(ornX - radius/3, ornY - radius/3, radius/3, 0, Math.PI * 2);
+                        ctx.fill();
+                    };
+
+                    // Add ornaments in a pattern
+                    for(let layer = 0; layer < layers; layer++) {
+                        const layerY = y - size/4 - layer * layerHeight;
+                        const layerWidth = size * (1.6 - layer * 0.4);
+                        const ornamentCount = 3 + layer * 2;
+                        
+                        for(let j = 0; j < ornamentCount; j++) {
+                            const ornX = x - layerWidth/2 + (layerWidth/(ornamentCount-1)) * j;
+                            const ornY = layerY - layerHeight/2;
+                            addOrnament(ornX, ornY, 5);
+                        }
+                    }
+
+                    // Add star on top
+                    const starX = x;
+                    const starY = y - size - layers * layerHeight/2;
+                    ctx.fillStyle = '#ffd700';  // Gold color
+                    
+                    // Draw 5-pointed star
+                    ctx.beginPath();
+                    for(let i = 0; i < 5; i++) {
+                        const angle = (i * 4 * Math.PI) / 5;
+                        const outerX = starX + Math.cos(angle) * 15;
+                        const outerY = starY + Math.sin(angle) * 15;
+                        const innerX = starX + Math.cos(angle + Math.PI/5) * 7;
+                        const innerY = starY + Math.sin(angle + Math.PI/5) * 7;
+                        
+                        if(i === 0) ctx.moveTo(outerX, outerY);
+                        else ctx.lineTo(outerX, outerY);
+                        ctx.lineTo(innerX, innerY);
+                    }
+                    ctx.closePath();
+                    ctx.fill();
+
+                    // Add garland (string lights)
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 1;
+                    for(let layer = 0; layer < layers; layer++) {
+                        ctx.beginPath();
+                        const startY = y - size/4 - layer * layerHeight;
+                        const endY = startY - layerHeight/2;
+                        const width = size * (1.4 - layer * 0.3);
+                        
+                        // Draw wavy line for garland
+                        for(let w = 0; w <= 1; w += 0.1) {
+                            const wx = x - width/2 + width * w;
+                            const wy = startY - layerHeight/2 + Math.sin(w * Math.PI * 2) * 10;
+                            if(w === 0) ctx.moveTo(wx, wy);
+                            else ctx.lineTo(wx, wy);
+                        }
+                        ctx.stroke();
+
+                        // Add light bulbs along the garland
+                        for(let w = 0; w <= 1; w += 0.2) {
+                            const wx = x - width/2 + width * w;
+                            const wy = startY - layerHeight/2 + Math.sin(w * Math.PI * 2) * 10;
+                            ctx.fillStyle = ornamentColors[Math.floor(Math.random() * ornamentColors.length)];
+                            ctx.beginPath();
+                            ctx.arc(wx, wy, 3, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    }
+                };
+
+                // Draw background trees (smaller and darker)
+                for (let i = 0; i < 5; i++) {
+                    const x = (i + 1) * (canvas.width / 6) + Math.random() * 30 - 15;
+                    const y = canvas.height - 90;
+                    const size = 70 + Math.random() * 20;
+                    drawTree(x, y, size);
+                }
+
+                // Draw Santa Claus
+                const drawSanta = (x, y, size) => {
+                    // Santa's face
+                    ctx.fillStyle = '#FFE0D1';  // Skin tone
+                    ctx.beginPath();
+                    ctx.arc(x, y - size/2, size/4, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Santa's hat
+                    ctx.fillStyle = '#FF0000';  // Red
+                    ctx.beginPath();
+                    ctx.moveTo(x - size/3, y - size/2);
+                    ctx.quadraticCurveTo(x, y - size, x + size/3, y - size/2);
+                    ctx.fill();
+
+                    // Hat trim
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillRect(x - size/3, y - size/2, size/1.5, size/10);
+                    
+                    // Hat pompom
+                    ctx.beginPath();
+                    ctx.arc(x + size/3, y - size/2, size/10, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Beard
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.beginPath();
+                    ctx.arc(x, y - size/3, size/3, 0, Math.PI);
+                    ctx.fill();
+
+                    // Body (coat)
+                    ctx.fillStyle = '#FF0000';
+                    ctx.beginPath();
+                    ctx.ellipse(x, y + size/4, size/2, size/1.5, 0, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Belt
+                    ctx.fillStyle = '#000000';
+                    ctx.fillRect(x - size/2, y, size, size/10);
+                    
+                    // Belt buckle
+                    ctx.fillStyle = '#FFD700';
+                    ctx.fillRect(x - size/8, y - size/40, size/4, size/8);
+
+                    // Arms
+                    ctx.fillStyle = '#FF0000';
+                    ctx.beginPath();
+                    ctx.ellipse(x - size/2, y, size/4, size/8, -Math.PI/4, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.ellipse(x + size/2, y, size/4, size/8, Math.PI/4, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Hands
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.beginPath();
+                    ctx.arc(x - size/1.5, y + size/8, size/10, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(x + size/1.5, y + size/8, size/10, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Eyes
+                    ctx.fillStyle = '#000000';
+                    ctx.beginPath();
+                    ctx.arc(x - size/8, y - size/2, size/20, 0, Math.PI * 2);
+                    ctx.arc(x + size/8, y - size/2, size/20, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Rosy cheeks
+                    ctx.fillStyle = '#FF9999';
+                    ctx.beginPath();
+                    ctx.arc(x - size/5, y - size/3, size/15, 0, Math.PI * 2);
+                    ctx.arc(x + size/5, y - size/3, size/15, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Smile
+                    ctx.strokeStyle = '#000000';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(x, y - size/3, size/8, 0, Math.PI);
+                    ctx.stroke();
+
+                    // Add gift sack
+                    ctx.fillStyle = '#8B4513';
+                    ctx.beginPath();
+                    ctx.ellipse(x + size, y + size/2, size/2, size/1.5, Math.PI/4, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Sack highlights
+                    ctx.strokeStyle = '#FFD700';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.moveTo(x + size*0.7, y);
+                    ctx.lineTo(x + size*1.3, y + size);
+                    ctx.stroke();
+                };
+
+                // Add Santa to the scene
+                drawSanta(canvas.width * 0.8, canvas.height - 120, 80);
+
+                // Draw some bushes
+                const drawBush = (x, y, size) => {
+                    const bushColors = ['#2d5a27', '#3e7a3c', '#1a4314', '#4a8f48'];
+                    
+                    // Draw multiple layers for depth
+                    for (let i = 3; i >= 0; i--) {
+                        ctx.fillStyle = bushColors[i];
+                        ctx.beginPath();
+                        
+                        // Create irregular bush shape
+                        for (let angle = 0; angle < Math.PI * 2; angle += 0.2) {
+                            const variance = (Math.random() * 0.3 + 0.7) * size;
+                            const px = x + Math.cos(angle) * variance + i * 5;
+                            const py = y + Math.sin(angle) * variance + i * 3;
+                            if (angle === 0) ctx.moveTo(px, py);
+                            else ctx.lineTo(px, py);
+                        }
+                        ctx.closePath();
+                        ctx.fill();
+                    }
+                };
+
+                // Add bushes
+                for (let i = 0; i < 8; i++) {
+                    const x = i * (canvas.width / 8) + Math.random() * 30;
+                    const y = canvas.height - 60;
+                    const size = 25 + Math.random() * 15;
+                    drawBush(x, y, size);
+                }
+
+                // Add some flowers
+                const drawFlower = (x, y) => {
+                    const colors = ['#ff6b6b', '#ffd93d', '#ff9f43', '#ff4757', '#ffffff', '#ffeb3b'];
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    
+                    // Draw petals
+                    ctx.fillStyle = color;
+                    for (let i = 0; i < 5; i++) {
+                        const angle = (i / 5) * Math.PI * 2;
+                        const px = x + Math.cos(angle) * 5;
+                        const py = y + Math.sin(angle) * 5;
+                        ctx.beginPath();
+                        ctx.ellipse(px, py, 4, 2, angle, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    
+                    // Draw flower center
+                    ctx.fillStyle = '#ffd700';
+                    ctx.beginPath();
+                    ctx.arc(x, y, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                };
+
+                // Add scattered flowers
+                for (let i = 0; i < 30; i++) {
+                    const x = Math.random() * canvas.width;
+                    const y = canvas.height - 40 - Math.random() * 40;
+                    drawFlower(x, y);
+                }
 
                 const img = new Image();
                 img.src = canvas.toDataURL();
@@ -571,6 +893,9 @@ class Game {
         this.updateDifficulty();  // Update difficulty first
         this.spawnObject();
 
+        // Update party poppers and remove finished ones
+        this.partyPoppers = this.partyPoppers.filter(popper => popper.update());
+
         this.fallingObjects = this.fallingObjects.filter(obj => {
             obj.update(this.gameSpeed);
             
@@ -621,6 +946,9 @@ class Game {
         // Draw game elements
         this.player.draw(this.ctx);
         this.fallingObjects.forEach(obj => obj.draw(this.ctx));
+        
+        // Draw party poppers
+        this.partyPoppers.forEach(popper => popper.draw(this.ctx));
 
         // Draw UI
         this.drawUI();
@@ -822,6 +1150,18 @@ class Game {
         // Add to the game canvas container
         const gameCanvas = document.getElementById('gameCanvas');
         gameCanvas.parentElement.appendChild(levelUpDiv);
+
+        // Check if it's every 3rd level
+        if (this.level % 3 === 0) {
+            // Create multiple party poppers across the screen
+            for (let i = 0; i < 5; i++) {
+                this.partyPoppers.push(new PartyPopper(
+                    this.canvas,
+                    Math.random() * this.canvas.width,
+                    Math.random() * this.canvas.height
+                ));
+            }
+        }
 
         // Remove the message after animation
         setTimeout(() => {
