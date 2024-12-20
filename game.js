@@ -78,56 +78,109 @@ class Game {
         bgCanvas.height = window.innerHeight;
         const bgCtx = bgCanvas.getContext('2d');
 
-        // Create gradient background
+        // Create night sky gradient
         const gradient = bgCtx.createLinearGradient(0, 0, 0, bgCanvas.height);
-        gradient.addColorStop(0, '#1a8cff');  // Bright blue at top
-        gradient.addColorStop(1, '#99ccff');  // Light blue at bottom
+        gradient.addColorStop(0, '#0B1026');  // Dark blue at top
+        gradient.addColorStop(0.5, '#1B2045');  // Medium blue
+        gradient.addColorStop(1, '#2A1B3D');  // Purple-ish at bottom
         bgCtx.fillStyle = gradient;
         bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
 
-        // Add decorative elements
-        // Draw stars
-        for (let i = 0; i < 100; i++) {
+        // Add stars
+        for (let i = 0; i < 200; i++) {
             const x = Math.random() * bgCanvas.width;
-            const y = Math.random() * (bgCanvas.height * 0.6);
+            const y = Math.random() * (bgCanvas.height * 0.8);
             const size = Math.random() * 2;
             
-            bgCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            // Create twinkling effect with different opacities
+            bgCtx.fillStyle = `rgba(255, 255, 255, ${0.3 + Math.random() * 0.7})`;
             bgCtx.beginPath();
             bgCtx.arc(x, y, size, 0, Math.PI * 2);
             bgCtx.fill();
         }
 
-        // Draw mountains in the background
-        const drawMountain = (x, height, color) => {
-            bgCtx.fillStyle = color;
-            bgCtx.beginPath();
-            bgCtx.moveTo(x, bgCanvas.height);
-            bgCtx.lineTo(x + 200, bgCanvas.height - height);
-            bgCtx.lineTo(x + 400, bgCanvas.height);
-            bgCtx.closePath();
-            bgCtx.fill();
+        // Draw buildings
+        const drawBuilding = (x, width, height, hasWindows = true) => {
+            // Building base
+            bgCtx.fillStyle = '#1a1a1a';
+            bgCtx.fillRect(x, bgCanvas.height - height, width, height);
+
+            // Windows
+            if (hasWindows) {
+                const windowSize = 10;
+                const gap = 15;
+                for (let row = 0; row < Math.floor((height - 20) / gap); row++) {
+                    for (let col = 0; col < Math.floor((width - 10) / gap); col++) {
+                        // Random light color
+                        const brightness = Math.random();
+                        if (brightness > 0.3) { // 70% chance of light being on
+                            bgCtx.fillStyle = `rgba(255, 255, ${150 + Math.random() * 100}, ${brightness})`;
+                            bgCtx.fillRect(
+                                x + 5 + col * gap,
+                                bgCanvas.height - height + 10 + row * gap,
+                                windowSize,
+                                windowSize
+                            );
+                        }
+                    }
+                }
+            }
         };
 
-        // Draw multiple mountain ranges
-        for (let i = 0; i < bgCanvas.width; i += 300) {
-            drawMountain(i - 100, 200, '#2d5986');  // Back mountains
-            drawMountain(i, 150, '#3973ac');  // Front mountains
+        // Draw multiple buildings of varying heights
+        const buildingCount = Math.ceil(bgCanvas.width / 100);
+        for (let i = 0; i < buildingCount; i++) {
+            const width = 60 + Math.random() * 40;
+            const height = 150 + Math.random() * 250;
+            drawBuilding(i * 100, width, height);
         }
 
-        // Draw clouds
-        for (let i = 0; i < 15; i++) {
-            const x = Math.random() * bgCanvas.width;
-            const y = Math.random() * (bgCanvas.height * 0.4);
-            const size = 30 + Math.random() * 50;
-            
-            bgCtx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        // Add UFOs/Aliens
+        const drawUFO = (x, y, size) => {
+            bgCtx.fillStyle = '#333';
+            // UFO body
             bgCtx.beginPath();
-            bgCtx.arc(x, y, size, 0, Math.PI * 2);
-            bgCtx.arc(x + size * 0.5, y - size * 0.2, size * 0.7, 0, Math.PI * 2);
-            bgCtx.arc(x - size * 0.5, y - size * 0.1, size * 0.6, 0, Math.PI * 2);
+            bgCtx.ellipse(x, y, size, size/2, 0, 0, Math.PI * 2);
             bgCtx.fill();
+            
+            // UFO dome
+            bgCtx.fillStyle = 'rgba(120, 220, 255, 0.6)';
+            bgCtx.beginPath();
+            bgCtx.ellipse(x, y - size/4, size/2, size/3, 0, Math.PI, 0);
+            bgCtx.fill();
+            
+            // UFO lights
+            for(let i = 0; i < 3; i++) {
+                const lightX = x - size + (i * size);
+                bgCtx.fillStyle = `rgba(255, 255, 100, ${0.5 + Math.random() * 0.5})`;
+                bgCtx.beginPath();
+                bgCtx.arc(lightX, y, size/6, 0, Math.PI * 2);
+                bgCtx.fill();
+            }
+        };
+
+        // Draw multiple UFOs
+        for(let i = 0; i < 5; i++) {
+            const x = Math.random() * bgCanvas.width;
+            const y = 100 + Math.random() * 200;
+            const size = 20 + Math.random() * 30;
+            drawUFO(x, y, size);
         }
+
+        // Add light beam effect from one UFO
+        const beamX = bgCanvas.width * 0.7;
+        const beamY = 150;
+        const gradient2 = bgCtx.createLinearGradient(beamX, beamY, beamX, beamY + 200);
+        gradient2.addColorStop(0, 'rgba(255, 255, 150, 0.3)');
+        gradient2.addColorStop(1, 'rgba(255, 255, 150, 0)');
+        bgCtx.fillStyle = gradient2;
+        bgCtx.beginPath();
+        bgCtx.moveTo(beamX - 40, beamY);
+        bgCtx.lineTo(beamX + 40, beamY);
+        bgCtx.lineTo(beamX + 80, beamY + 200);
+        bgCtx.lineTo(beamX - 80, beamY + 200);
+        bgCtx.closePath();
+        bgCtx.fill();
 
         // Set the background image
         background.style.background = `url(${bgCanvas.toDataURL()})`;
