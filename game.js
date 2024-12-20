@@ -110,8 +110,8 @@ class Game {
     constructor() {
         this.canvas = document.getElementById('gameCanvas');
         this.ctx = this.canvas.getContext('2d');
-        this.canvas.width = 800;
-        this.canvas.height = 600;
+        this.canvas.width = 900;
+        this.canvas.height = 700;
         
         this.keys = {};
         this.initializeBackground();  // Initialize background first

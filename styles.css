@@ -4,7 +4,7 @@ body {
     background: #f0f2f5;
     font-family: 'Segoe UI', 'Arial', sans-serif;
     display: grid;
-    grid-template-columns: 400px 1fr;
+    grid-template-columns: 450px 1fr;
     gap: 2rem;
     padding: 20px;
     box-sizing: border-box;
@@ -12,8 +12,8 @@ body {
 
 #game-container {
     position: relative;
-    width: 800px;
-    height: 600px;
+    width: 900px;
+    height: 700px;
     background: white;
     padding: 20px;
     border-radius: 20px;
