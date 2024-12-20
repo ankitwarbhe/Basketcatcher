@@ -1,4 +1,5 @@
 # Basketcatcher
+![Capt](https://github.com/user-attachments/assets/772423ee-98b0-4d47-b1f6-b9f1f386519d)
 
 ## Overview
 Basketcatcher is a fun and interactive game where players catch falling objects using a basket. The objective is to collect as many good objects (fruits) as possible while avoiding bad objects (bombs). The game features increasing difficulty levels, a scoreboard, and a visually appealing background.
